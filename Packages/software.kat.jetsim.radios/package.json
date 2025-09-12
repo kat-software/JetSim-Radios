@@ -1,0 +1,22 @@
+{
+  "name": "software.kat.jetsim.radios",
+  "version": "1.0.0",
+  "type": "tool",
+  "displayName": "JetSim - Radios",
+  "description": "Drop-in radio system for VRChat worlds.",
+  "author": {
+    "name": "KatSoftware",
+    "email": "contact@kat.software",
+    "url": "https://github.com/kat-software"
+  },
+  "unity": "2019.4",
+  "unityRelease": "31f1",
+  "dependencies": {
+    "com.livedimensions.vrrefassist": "1.0.0"
+  },
+  "keywords": [
+    "katsoftware",
+    "jetsim",
+    "radio"
+  ]
+}
