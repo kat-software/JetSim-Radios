@@ -1,7 +1,9 @@
 ﻿
 using UnityEngine;
-using VRC.SDKBase;
 using UdonSharp;
+using VRC.SDKBase;
+
+using Cyan.PlayerObjectPool;
 
 using KatSoftware.JetSim.Common.Runtime;
 
@@ -9,7 +11,7 @@ namespace KatSoftware.JetSim.Radios.Runtime
 {
     [AddComponentMenu("")]
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
-    public class RadioPlayerObject : UdonSharpBehaviour
+    public class RadioPlayerObject : CyanPlayerObjectPoolObject
     {
         #region CONSTANTS
         
@@ -57,24 +59,6 @@ namespace KatSoftware.JetSim.Radios.Runtime
             }
             get => _radioEnabled;
         }
-
-
-        private void Start()
-        {
-            _owner = Networking.GetOwner(gameObject);
-            _localPlayerIsOwner = _owner.isLocal;
-            
-            if (!_localPlayerIsOwner) return;
-            
-            radioManager.Register(this);
-            
-            _channel = 0;
-            RadioEnabled = false;
-            
-            RequestSerialization();
-        }
-        
-        private void OnDestroy() => radioManager._Unsubscribe(this);
         
         #region API
         
@@ -108,21 +92,50 @@ namespace KatSoftware.JetSim.Radios.Runtime
 
         public void _SetVoiceBoosted()
         {
+            JS_Debug.Log("Set voice boosted", this);
             if (!VRC.SDKBase.Utilities.IsValid(_owner)) return;
             
             _owner.SetVoiceDistanceNear(BoostedNear);
             _owner.SetVoiceDistanceFar(BoostedFar);
             _owner.SetVoiceGain(BoostedGain);
+            
+            JS_Debug.LogSuccess("Set boosted success!", this);
         }
         public void _SetVoiceDefault()
         {
+            JS_Debug.Log("Set voice default", this);
             if (!VRC.SDKBase.Utilities.IsValid(_owner)) return;
             
             _owner.SetVoiceDistanceNear(DefaultNear);
             _owner.SetVoiceDistanceFar(DefaultFar);
             _owner.SetVoiceGain(DefaultGain);
+            
+            JS_Debug.LogSuccess("Set default success!", this);
         }
         
         #endregion // API
+
+        #region CPOP
+        
+        public override void _OnOwnerSet()
+        {
+            _owner = Networking.GetOwner(gameObject);
+            _localPlayerIsOwner = _owner.isLocal;
+            
+            JS_Debug.Log("Owner set. Remote: " + _owner.isLocal, this);
+            
+            if (!_localPlayerIsOwner) return;
+            
+            radioManager.Register(this);
+            
+            _channel = 0;
+            RadioEnabled = false;
+            
+            RequestSerialization();
+        }
+
+        public override void _OnCleanup() => radioManager._Unsubscribe(this);
+        
+        #endregion // CPOP
     }
 }

@@ -1,11 +1,11 @@
 {
     "name": "KatSoftware.JetSim.Radios.Runtime",
-    "rootNamespace": "",
     "references": [
         "GUID:6055be8ebefd69e48b49212b09b47b2f",
         "GUID:99835874ee819da44948776e0df4ff1d",
         "GUID:d668a3d28cde37a459b73d0662b3c95e",
-        "GUID:81b63f3c5be8dc54d9dcf82ff304a503"
+        "GUID:81b63f3c5be8dc54d9dcf82ff304a503",
+        "GUID:f9c26e56726b28c4689cb1fb7d79fd0e"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
