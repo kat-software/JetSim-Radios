@@ -29,8 +29,7 @@ namespace KatSoftware.JetSim.Radios.Runtime
         
         [SerializeField, HideInInspector] private RadioManager radioManager;
 
-
-        private VRCPlayerApi _owner;
+        
         private bool _localPlayerIsOwner;
 
         [UdonSynced, System.NonSerialized] private byte _channel;
@@ -93,22 +92,22 @@ namespace KatSoftware.JetSim.Radios.Runtime
         public void _SetVoiceBoosted()
         {
             JS_Debug.Log("Set voice boosted", this);
-            if (!VRC.SDKBase.Utilities.IsValid(_owner)) return;
+            if (!VRC.SDKBase.Utilities.IsValid(Owner)) return;
             
-            _owner.SetVoiceDistanceNear(BoostedNear);
-            _owner.SetVoiceDistanceFar(BoostedFar);
-            _owner.SetVoiceGain(BoostedGain);
+            Owner.SetVoiceDistanceNear(BoostedNear);
+            Owner.SetVoiceDistanceFar(BoostedFar);
+            Owner.SetVoiceGain(BoostedGain);
             
             JS_Debug.LogSuccess("Set boosted success!", this);
         }
         public void _SetVoiceDefault()
         {
             JS_Debug.Log("Set voice default", this);
-            if (!VRC.SDKBase.Utilities.IsValid(_owner)) return;
+            if (!VRC.SDKBase.Utilities.IsValid(Owner)) return;
             
-            _owner.SetVoiceDistanceNear(DefaultNear);
-            _owner.SetVoiceDistanceFar(DefaultFar);
-            _owner.SetVoiceGain(DefaultGain);
+            Owner.SetVoiceDistanceNear(DefaultNear);
+            Owner.SetVoiceDistanceFar(DefaultFar);
+            Owner.SetVoiceGain(DefaultGain);
             
             JS_Debug.LogSuccess("Set default success!", this);
         }
@@ -119,10 +118,9 @@ namespace KatSoftware.JetSim.Radios.Runtime
         
         public override void _OnOwnerSet()
         {
-            _owner = Networking.GetOwner(gameObject);
-            _localPlayerIsOwner = _owner.isLocal;
+            _localPlayerIsOwner = Owner.isLocal;
             
-            JS_Debug.Log("Owner set. Remote: " + _owner.isLocal, this);
+            JS_Debug.Log("Owner set. Remote: " + Owner.isLocal, this);
             
             if (!_localPlayerIsOwner) return;
             
