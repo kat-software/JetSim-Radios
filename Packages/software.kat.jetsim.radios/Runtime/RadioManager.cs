@@ -19,6 +19,8 @@ namespace KatSoftware.JetSim.Radios.Runtime
         
         private bool _radioEnabled = true;
         private bool _radioInUse;
+        
+        private bool RadioEnabled => _radioEnabled && _radioInUse;
 
 
         #region API
@@ -26,13 +28,13 @@ namespace KatSoftware.JetSim.Radios.Runtime
         /// <summary>
         /// Called by RadioPlayerObject when assigned to the local player.
         /// </summary>
-        public void Register(RadioPlayerObject radioPlayerObject)
+        public void RegisterLocalRadio(RadioPlayerObject radioPlayerObject)
         {
             if (!radioPlayerObject) return;
             _localPlayerRadioObject = radioPlayerObject;
             
             _localPlayerRadioObject.SetChannel(SelectedChannel);
-            _localPlayerRadioObject.RadioEnabled = _radioEnabled && _radioInUse;
+            _localPlayerRadioObject.SetPowered(_radioEnabled);
             
             NotifyRadioSettingsUpdated();
         }
@@ -53,8 +55,8 @@ namespace KatSoftware.JetSim.Radios.Runtime
         {
             if (!_localPlayerRadioObject) return;
             
-            _localPlayerRadioObject._IncreaseChannel();
-            SelectedChannel = _localPlayerRadioObject.GetChannel;
+            _localPlayerRadioObject.NextChannel();
+            SelectedChannel = _localPlayerRadioObject.Channel;
             
             NotifyRadioSettingsUpdated();
         }
@@ -62,8 +64,8 @@ namespace KatSoftware.JetSim.Radios.Runtime
         {
             if (!_localPlayerRadioObject) return;
             
-            _localPlayerRadioObject._DecreaseChannel();
-            SelectedChannel = _localPlayerRadioObject.GetChannel;
+            _localPlayerRadioObject.PreviousChannel();
+            SelectedChannel = _localPlayerRadioObject.Channel;
             
             NotifyRadioSettingsUpdated();
         }
@@ -84,7 +86,7 @@ namespace KatSoftware.JetSim.Radios.Runtime
             _radioEnabled = isOn;
             
             if (_localPlayerRadioObject)
-                _localPlayerRadioObject.RadioEnabled = _radioEnabled && _radioInUse;
+                _localPlayerRadioObject.SetPowered(_radioEnabled);
             
             NotifyRadioSettingsUpdated();
         }
@@ -94,9 +96,11 @@ namespace KatSoftware.JetSim.Radios.Runtime
         
         public void _SetAllVoicesDefault()
         {
+            /*
             int activeRadiosCount = _activeRadios.Length;
             for (int i = 0; i < activeRadiosCount; i++)
                 _activeRadios[i]._SetVoiceDefault();
+            */
         }
         
         #endregion // API
@@ -110,20 +114,20 @@ namespace KatSoftware.JetSim.Radios.Runtime
             SendCustomEventDelayedFrames(nameof(_RadioVoiceVolumesLoop), 5);
             
             if (!_localPlayerRadioObject) return;
-            if (!(_radioEnabled && _radioInUse)) return;
+            if (!RadioEnabled) return;
 
-            var myCurrentChannel = _localPlayerRadioObject.GetChannel;
+            var myCurrentChannel = _localPlayerRadioObject.Channel;
             
             int activeRadiosCount = _activeRadios.Length;
-            for (int i = 0; i < activeRadiosCount; i++)
+            for (int i = 0; i < activeRadiosCount; i++) // TODO: Make it only update this if anything changed. When receiving sync only update that player's voice, when changing the local player's settings, loop through all radios
             {
                 RadioPlayerObject playerRadio = _activeRadios[i];
                 if (!playerRadio) { JS_Debug.LogError($"Radio object was null! Index: {i}.", this); continue; }
 
-                bool inSameChannel = myCurrentChannel == playerRadio.GetChannel;
+                bool inSameChannel = myCurrentChannel == playerRadio.Channel;
                 
-                if (inSameChannel) playerRadio._SetVoiceBoosted();
-                else playerRadio._SetVoiceDefault();
+                //if (inSameChannel) playerRadio._SetVoiceBoosted();
+                //else playerRadio._SetVoiceDefault();
             }
         }
 
@@ -138,7 +142,7 @@ namespace KatSoftware.JetSim.Radios.Runtime
         {
             JS_Debug.Log("Radio object removed", this);
             _activeRadios = _activeRadios.Remove(playerObject);
-            playerObject._SetVoiceDefault();
+            //playerObject._SetVoiceDefault();
         }
 
         private void NotifyRadioSettingsUpdated()

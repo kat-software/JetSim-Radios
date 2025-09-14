@@ -14,69 +14,106 @@ namespace KatSoftware.JetSim.Radios.Runtime
     {
         [SerializeField, HideInInspector] private RadioManager radioManager;
 
-        
         private bool _localPlayerIsOwner;
 
-        [UdonSynced] private byte _syncedData; // 4 LSBit = channel, 4 MSBits are used for
+        private bool _radioPowered;
+        private bool _wantsToTransmit;
+        private bool _transmitting;
         
-        private int _channel;
+        
+        #region INTERNAL API
 
-        [UdonSynced, FieldChangeCallback(nameof(RadioEnabled))] private bool _radioEnabled;
-        public bool RadioEnabled
+        internal void ToggleTransmitting() => SetTransmitting(!_wantsToTransmit);
+        internal void SetTransmitting(bool state)
         {
-            set
-            {
-                _radioEnabled = value;
-
-                if (_localPlayerIsOwner)
-                {
-                    if (!_radioEnabled) radioManager._SetAllVoicesDefault();
-                    RequestSerialization();
-                    
-                    JS_Debug.Log("RadioEnabled Local: " + _radioEnabled, this);
-                }
-                else // Remote player
-                {
-                    if (_radioEnabled) radioManager._Subscribe(this);
-                    else radioManager._Unsubscribe(this);
-                    
-                    JS_Debug.Log("RadioEnabled Remote: " + _radioEnabled, this);
-                }
-            }
-            get => _radioEnabled;
-        }
-        
-        #region API
-        
-        private const int _MAX_CHANNEL = 15;
-        
-        public void _IncreaseChannel()
-        {
-            var newChannel = _channel + 1;
-            if (newChannel > _MAX_CHANNEL)
-                newChannel = 0;
-            
-            SetChannel(newChannel);
-        }
-        public void _DecreaseChannel()
-        {
-            var newChannel = _channel - 1;
-            if (newChannel < 0)
-                newChannel = _MAX_CHANNEL;
-            
-            SetChannel(newChannel);
-        }
-        public void SetChannel(int newChannel)
-        {
-            _channel = Mathf.Clamp(newChannel, 0, _MAX_CHANNEL);
+            _wantsToTransmit = state;
+            _transmitting = _radioPowered && _wantsToTransmit;
             
             RequestSerialization();
-            
-            JS_Debug.Log("Channel set to: " + _channel, this);
+            OnSettingsUpdated();
         }
         
-        #endregion // API
+        internal void TogglePower() => SetPowered(!_radioPowered);
+        internal void SetPowered(bool state)
+        {
+            _radioPowered = state;
+            _transmitting = _radioPowered && _wantsToTransmit;
+            
+            RequestSerialization();
+            OnSettingsUpdated();
+        }
 
+        #region CHANNEL
+        
+        internal const int MAX_CHANNEL = _CHANNEL_MASK;
+        internal int Channel { get; private set; }
+
+        internal void NextChannel(bool wrap = true)
+        {
+            var newChannel = Channel + 1;
+            
+            if (wrap)
+                if (newChannel > MAX_CHANNEL) newChannel = 0;
+            
+            SetChannel(newChannel);
+        }
+        internal void PreviousChannel(bool wrap = true)
+        {
+            var newChannel = Channel - 1;
+            
+            if (wrap) 
+                if (newChannel < 0) newChannel = MAX_CHANNEL;
+            
+            SetChannel(newChannel);
+        }
+        /// <summary>
+        /// Sets the channel for this player's radio and syncs it.
+        /// </summary>
+        /// <param name="newChannel">Clamped between 0 and <see cref="MAX_CHANNEL"/>.</param>
+        internal void SetChannel(int newChannel)
+        {
+            Channel = Mathf.Clamp(newChannel, 0, MAX_CHANNEL);
+            JS_Debug.Log("Channel set to: " + Channel, this);
+            
+            RequestSerialization();
+            OnSettingsUpdated();
+        }
+        
+        #endregion // CHANNEL
+        
+        #endregion // INTERNAL API
+
+        #region SYNC
+
+        [UdonSynced] private byte _syncedData;
+        
+        private const byte _ZERO = 0b00000000; // The ternary op requires this to be a const variable for some reason.
+        private const byte _CHANNEL_MASK = 0b01111111;
+        private const byte _TRANSMIT_MASK = 0b10000000;
+        
+        public override void OnPreSerialization()
+        {
+            _syncedData = _transmitting ? _TRANSMIT_MASK : _ZERO;
+            _syncedData |= (byte)(Channel & _CHANNEL_MASK);
+        }
+
+        public override void OnDeserialization()
+        {
+            _transmitting = (_syncedData & _TRANSMIT_MASK) > 0;
+            Channel = _syncedData & _CHANNEL_MASK;
+
+            OnSettingsUpdated();
+        }
+        
+        #endregion // SYNC
+        
+        private void OnSettingsUpdated()
+        {
+            if (_localPlayerIsOwner) return;
+
+            //if (RadioConnection()) SetVoiceBoosted(); else SetVoiceDefault();
+        }
+        
         #region VOICE STUFF
         
         private const float _BOOSTED_NEAR = _BOOSTED_FAR - 1f;
@@ -118,14 +155,14 @@ namespace KatSoftware.JetSim.Radios.Runtime
         {
             _localPlayerIsOwner = Owner.isLocal;
             
-            JS_Debug.Log("Owner set. Remote: " + Owner.isLocal, this);
+            JS_Debug.Log($"OnOwnerSet: {(_localPlayerIsOwner ? "Local" : "Remote")}.", this);
             
             if (!_localPlayerIsOwner) return;
             
-            radioManager.Register(this);
+            radioManager.RegisterLocalRadio(this);
             
-            _syncedData = 0;
-            RadioEnabled = false;
+            _radioPowered = false;
+            _wantsToTransmit = false;
             
             RequestSerialization();
         }
