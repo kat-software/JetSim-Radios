@@ -15,36 +15,19 @@ namespace KatSoftware.JetSim.Radios.Runtime
         [SerializeField, HideInInspector] private RadioManager radioManager;
 
         private bool _localPlayerIsOwner;
-
-        private bool _radioPowered;
-        private bool _wantsToTransmit;
         private bool _transmitting;
         
         
         #region INTERNAL API
-
-        internal void ToggleTransmitting() => SetTransmitting(!_wantsToTransmit);
+        
         internal void SetTransmitting(bool state)
         {
-            _wantsToTransmit = state;
-            _transmitting = _radioPowered && _wantsToTransmit;
-            
-            RequestSerialization();
-            OnSettingsUpdated();
-        }
-        
-        internal void TogglePower() => SetPowered(!_radioPowered);
-        internal void SetPowered(bool state)
-        {
-            _radioPowered = state;
-            _transmitting = _radioPowered && _wantsToTransmit;
+            _transmitting = state;
             
             RequestSerialization();
             OnSettingsUpdated();
         }
 
-        #region CHANNEL
-        
         internal const int MAX_CHANNEL = _CHANNEL_MASK;
         internal int Channel { get; private set; }
 
@@ -78,8 +61,6 @@ namespace KatSoftware.JetSim.Radios.Runtime
             RequestSerialization();
             OnSettingsUpdated();
         }
-        
-        #endregion // CHANNEL
         
         #endregion // INTERNAL API
 

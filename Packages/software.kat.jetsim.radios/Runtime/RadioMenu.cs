@@ -21,7 +21,7 @@ namespace KatSoftware.JetSim.Radios.Runtime
 
         #region API
 
-        public void _ToggleRadio() => radioManager._ToggleRadioEnabled();
+        public void _ToggleRadio() => radioManager._ToggleRadioPowered();
         public void _NextChannel() => radioManager.IncreaseChannel();
         public void _PreviousChannel() => radioManager.DecreaseChannel();
 
@@ -29,8 +29,8 @@ namespace KatSoftware.JetSim.Radios.Runtime
         
         private void UpdateUI()
         {
-            channelText.text = (radioManager.SelectedChannel + 1).ToString();
-            radioOnText.text = radioManager.GetRadioEnabled ? "ON" : "OFF";
+            channelText.text = (radioManager.Channel + 1).ToString();
+            radioOnText.text = radioManager.RadioPowered ? "ON" : "OFF";
         }
     }
 }

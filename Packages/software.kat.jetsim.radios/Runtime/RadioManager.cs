@@ -2,6 +2,8 @@
 using UdonSharp;
 using UnityEngine;
 
+using JetBrains.Annotations;
+
 using VRRefAssist;
 using KatSoftware.JetSim.Common.Runtime;
 
@@ -17,10 +19,9 @@ namespace KatSoftware.JetSim.Radios.Runtime
         
         private RadioPlayerObject _localPlayerRadioObject;
         
-        private bool _radioEnabled = true;
-        private bool _radioInUse;
-        
-        private bool RadioEnabled => _radioEnabled && _radioInUse;
+        private bool _radioPowered;
+        private bool _radioReceiving;
+        private bool _radioTransmitting;
 
 
         #region API
@@ -28,72 +29,78 @@ namespace KatSoftware.JetSim.Radios.Runtime
         /// <summary>
         /// Called by RadioPlayerObject when assigned to the local player.
         /// </summary>
-        public void RegisterLocalRadio(RadioPlayerObject radioPlayerObject)
+        internal void RegisterLocalRadio(RadioPlayerObject radioPlayerObject)
         {
-            if (!radioPlayerObject) return;
             _localPlayerRadioObject = radioPlayerObject;
             
-            _localPlayerRadioObject.SetChannel(SelectedChannel);
-            _localPlayerRadioObject.SetPowered(_radioEnabled);
+            _localPlayerRadioObject.SetTransmitting(_radioTransmitting && _radioPowered && _radioReceiving);
+            _localPlayerRadioObject.SetChannel(Channel);
             
             NotifyRadioSettingsUpdated();
         }
 
+        [PublicAPI]
         public void SetChannel(int newChannel)
         {
-            SelectedChannel = newChannel;
-            
             if (!_localPlayerRadioObject) return;
             
-            _localPlayerRadioObject.SetChannel(SelectedChannel);
-
+            _localPlayerRadioObject.SetChannel(Channel);
+            Channel = _localPlayerRadioObject.Channel;
+            
             NotifyRadioSettingsUpdated();
         }
-        public int SelectedChannel { get; private set; }
         
+        [PublicAPI]
+        public int Channel { get; private set; }
+        [PublicAPI]
+        public const int MAX_CHANNEL = RadioPlayerObject.MAX_CHANNEL;
+        
+        [PublicAPI]
         public void IncreaseChannel()
         {
             if (!_localPlayerRadioObject) return;
             
             _localPlayerRadioObject.NextChannel();
-            SelectedChannel = _localPlayerRadioObject.Channel;
+            Channel = _localPlayerRadioObject.Channel;
             
             NotifyRadioSettingsUpdated();
         }
+        [PublicAPI]
         public void DecreaseChannel()
         {
             if (!_localPlayerRadioObject) return;
             
             _localPlayerRadioObject.PreviousChannel();
-            SelectedChannel = _localPlayerRadioObject.Channel;
+            Channel = _localPlayerRadioObject.Channel;
             
             NotifyRadioSettingsUpdated();
         }
 
-        
-        public void SetRadioInUse(bool isOn)
+        [PublicAPI]
+        public void SetRadioPowered(bool state)
         {
-            _radioInUse = isOn;
-            _SetRadioEnabled(_radioEnabled);
+            _transmitting = state;
+            _SetRadioPowered(RadioPowered);
             
             NotifyRadioSettingsUpdated();
         }
 
-        
-        public void _ToggleRadioEnabled() => _SetRadioEnabled(!_radioEnabled);
-        public void _SetRadioEnabled(bool isOn)
+        [PublicAPI]
+        public void _ToggleRadioPowered() => _SetRadioPowered(!RadioPowered);
+        [PublicAPI]
+        public void _SetRadioPowered(bool state)
         {
-            _radioEnabled = isOn;
+            RadioPowered = state;
             
             if (_localPlayerRadioObject)
-                _localPlayerRadioObject.SetPowered(_radioEnabled);
+                _localPlayerRadioObject.SetPowered(RadioPowered);
             
             NotifyRadioSettingsUpdated();
         }
 
-        public bool GetRadioEnabled => _radioEnabled;
-        
-        
+        public bool RadioPowered { get; private set; }
+
+
         public void _SetAllVoicesDefault()
         {
             /*
@@ -114,7 +121,7 @@ namespace KatSoftware.JetSim.Radios.Runtime
             SendCustomEventDelayedFrames(nameof(_RadioVoiceVolumesLoop), 5);
             
             if (!_localPlayerRadioObject) return;
-            if (!RadioEnabled) return;
+            if (!(RadioPowered && _transmitting)) return;
 
             var myCurrentChannel = _localPlayerRadioObject.Channel;
             

@@ -10,7 +10,7 @@ namespace KatSoftware.JetSim.Radios.Runtime
     {
         [SerializeField, HideInInspector] private RadioManager radioManager;
 
-        private void OnEnable() => radioManager.SetRadioInUse(true);
-        private void OnDisable() => radioManager.SetRadioInUse(false);
+        private void OnEnable() => radioManager.SetRadioPowered(true);
+        private void OnDisable() => radioManager.SetRadioPowered(false);
     }
 }
