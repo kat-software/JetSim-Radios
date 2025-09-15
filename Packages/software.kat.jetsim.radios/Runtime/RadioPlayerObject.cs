@@ -15,6 +15,7 @@ namespace KatSoftware.JetSim.Radios.Runtime
         [SerializeField, HideInInspector] private RadioManager radioManager;
 
         private bool _localPlayerIsOwner;
+        
         private bool _transmitting;
         
         
@@ -25,7 +26,6 @@ namespace KatSoftware.JetSim.Radios.Runtime
             _transmitting = state;
             
             RequestSerialization();
-            OnSettingsUpdated();
         }
 
         internal const int MAX_CHANNEL = _CHANNEL_MASK;
@@ -59,7 +59,6 @@ namespace KatSoftware.JetSim.Radios.Runtime
             JS_Debug.Log("Channel set to: " + Channel, this);
             
             RequestSerialization();
-            OnSettingsUpdated();
         }
         
         #endregion // INTERNAL API
@@ -68,7 +67,7 @@ namespace KatSoftware.JetSim.Radios.Runtime
 
         [UdonSynced] private byte _syncedData;
         
-        private const byte _ZERO = 0b00000000; // The ternary op requires this to be a const variable for some reason.
+        private const byte _ZERO = 0b00000000;
         private const byte _CHANNEL_MASK = 0b01111111;
         private const byte _TRANSMIT_MASK = 0b10000000;
         
@@ -88,13 +87,6 @@ namespace KatSoftware.JetSim.Radios.Runtime
         
         #endregion // SYNC
         
-        private void OnSettingsUpdated()
-        {
-            if (_localPlayerIsOwner) return;
-
-            //if (RadioConnection()) SetVoiceBoosted(); else SetVoiceDefault();
-        }
-        
         #region VOICE STUFF
         
         private const float _BOOSTED_NEAR = _BOOSTED_FAR - 1f;
@@ -105,7 +97,7 @@ namespace KatSoftware.JetSim.Radios.Runtime
         private const float _DEFAULT_FAR = 25f;
         private const float _DEFAULT_GAIN = 15f;
         
-        private void SetVoiceBoosted()
+        internal void SetVoiceBoosted()
         {
             JS_Debug.Log("Set voice boosted", this);
             if (!VRC.SDKBase.Utilities.IsValid(Owner)) return;
@@ -116,7 +108,7 @@ namespace KatSoftware.JetSim.Radios.Runtime
             
             JS_Debug.LogSuccess("Set boosted success!", this);
         }
-        private void SetVoiceDefault()
+        internal void SetVoiceDefault()
         {
             JS_Debug.Log("Set voice default", this);
             if (!VRC.SDKBase.Utilities.IsValid(Owner)) return;
@@ -142,14 +134,20 @@ namespace KatSoftware.JetSim.Radios.Runtime
             
             radioManager.RegisterLocalRadio(this);
             
-            _radioPowered = false;
-            _wantsToTransmit = false;
+            _transmitting = false;
             
             RequestSerialization();
         }
 
-        public override void _OnCleanup() => radioManager._Unsubscribe(this);
-        
+        public override void _OnCleanup()
+        {
+            _transmitting = false;
+            
+            RequestSerialization();
+            
+            radioManager._Unsubscribe(this);
+        }
+
         #endregion // CPOP
     }
 }
