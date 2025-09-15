@@ -36,7 +36,7 @@ namespace KatSoftware.JetSim.Radios.Runtime
             volumeSlider.SetValueWithoutNotify(radioManager.Volume);
             volumeText.text = (radioManager.Volume * 100f).ToString("0.0") + "%";
             channelText.text = $"{radioManager.Channel + 1} / {RadioManager.MAX_CHANNEL + 1}";
-            radioOnText.text = radioManager.RadioSystemEnabled ? "ON" : "OFF";
+            radioOnText.text = radioManager.RadioPowered ? "ON" : "OFF";
         }
     }
 }
