@@ -91,6 +91,9 @@ namespace KatSoftware.JetSim.Radios.Runtime
         [PublicAPI] public bool RadioSystemEnabled { get; private set; }
 
         [PublicAPI]
+        public void ToggleRadioSystemEnabled() => SetRadioSystemEnabled(!RadioSystemEnabled);
+        
+        [PublicAPI]
         public void SetRadioSystemEnabled(bool state)
         {
             RadioSystemEnabled = state;

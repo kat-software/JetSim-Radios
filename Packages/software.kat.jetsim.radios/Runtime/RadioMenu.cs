@@ -25,7 +25,7 @@ namespace KatSoftware.JetSim.Radios.Runtime
         #region PUBLIC API
         
         [PublicAPI] public void _OnVolumeSliderValueChanged() => radioManager.SetVolume(volumeSlider.value);
-        [PublicAPI] public void _ToggleRadio() => radioManager.ToggleRadioPowered();
+        [PublicAPI] public void _ToggleRadio() => radioManager.ToggleRadioSystemEnabled();
         [PublicAPI] public void _NextChannel() => radioManager.IncreaseChannel();
         [PublicAPI] public void _PreviousChannel() => radioManager.DecreaseChannel();
 
@@ -36,7 +36,7 @@ namespace KatSoftware.JetSim.Radios.Runtime
             volumeSlider.SetValueWithoutNotify(radioManager.Volume);
             volumeText.text = (radioManager.Volume * 100f).ToString("0.0") + "%";
             channelText.text = $"{radioManager.Channel + 1} / {RadioManager.MAX_CHANNEL + 1}";
-            radioOnText.text = radioManager.RadioPowered ? "ON" : "OFF";
+            radioOnText.text = radioManager.RadioSystemEnabled ? "ON" : "OFF";
         }
     }
 }
