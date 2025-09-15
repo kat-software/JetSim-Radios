@@ -21,8 +21,9 @@ namespace KatSoftware.JetSim.Radios.Runtime
         internal void RegisterLocalRadio(RadioPlayerObject radioPlayerObject)
         {
             _localPlayerRadioObject = radioPlayerObject;
-
+            
             SetVolume(1f);
+            RadioSystemEnabled = true;
             Channel = _localPlayerRadioObject.SetChannel(Channel);
             _localPlayerRadioObject.SetRadioEnabled(RadioEnabled);
             
