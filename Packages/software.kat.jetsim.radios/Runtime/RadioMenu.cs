@@ -1,7 +1,10 @@
 ﻿
 using TMPro;
-using UdonSharp;
 using UnityEngine;
+using UnityEngine.UI;
+using JetBrains.Annotations;
+
+using UdonSharp;
 
 namespace KatSoftware.JetSim.Radios.Runtime
 {
@@ -11,26 +14,29 @@ namespace KatSoftware.JetSim.Radios.Runtime
     {
         [SerializeField, HideInInspector] private RadioManager radioManager;
 
+        [SerializeField] private Slider volumeSlider;
+        [SerializeField] private TextMeshProUGUI volumeText;
         [SerializeField] private TextMeshProUGUI channelText;
         [SerializeField] private TextMeshProUGUI radioOnText;
-
-
-        private void Start() => UpdateUI();
+        
         public override void OnLocalRadioSettingsUpdated() => UpdateUI();
         
 
-        #region API
+        #region PUBLIC API
+        
+        [PublicAPI] public void _OnVolumeSliderValueChanged() => radioManager.SetVolume(volumeSlider.value);
+        [PublicAPI] public void _ToggleRadio() => radioManager.ToggleRadioPowered();
+        [PublicAPI] public void _NextChannel() => radioManager.IncreaseChannel();
+        [PublicAPI] public void _PreviousChannel() => radioManager.DecreaseChannel();
 
-        public void _ToggleRadio() => radioManager.ToggleRadioPowered();
-        public void _NextChannel() => radioManager.IncreaseChannel();
-        public void _PreviousChannel() => radioManager.DecreaseChannel();
-
-        #endregion // API
+        #endregion // PUBLIC API
         
         private void UpdateUI()
         {
-            channelText.text = (radioManager.Channel + 1).ToString();
-            radioOnText.text = radioManager.RadioPowered ? "ON" : "OFF";
+            volumeSlider.SetValueWithoutNotify(radioManager.Volume);
+            volumeText.text = (radioManager.Volume * 100f).ToString("0.0") + "%";
+            channelText.text = $"{radioManager.Channel + 1} / {RadioManager.MAX_CHANNEL + 1}";
+            radioOnText.text = radioManager.RadioSystemEnabled ? "ON" : "OFF";
         }
     }
 }
