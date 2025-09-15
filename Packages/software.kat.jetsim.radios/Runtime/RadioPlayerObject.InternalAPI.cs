@@ -35,14 +35,27 @@ namespace KatSoftware.JetSim.Radios.Runtime
         /// <returns>The value that was set.</returns>
         internal int SetChannel(int newChannel, bool wrap = false)
         {
-            if (wrap) _channel = newChannel % (MAX_CHANNEL + 1);
-            else _channel = Mathf.Clamp(newChannel, 0, MAX_CHANNEL);
+            _channel = wrap ? Repeat(newChannel, MAX_CHANNEL) : Mathf.Clamp(newChannel, 0, MAX_CHANNEL);
             
             JS_Debug.Log("Channel set to: " + _channel, this);
             
             RequestSerialization();
             
             return _channel;
+        }
+        
+        /// <summary>
+        /// Maps <paramref name="value"/> between 0 and <paramref name="interval"/> (inclusive).
+        /// </summary>
+        /// <param name="value">The value to remap.</param>
+        /// <param name="interval">The maximum inclusive value of the remap.</param>
+        /// <returns>The remapped value.</returns>
+        private static int Repeat(int value, int interval)
+        {
+            interval++;
+            value %= interval;
+            if (value < 0) value += interval;
+            return value;
         }
     }
 }
