@@ -56,27 +56,25 @@ namespace KatSoftware.JetSim.Radios.Runtime
         #region VOICE STUFF
         
         private const float _BOOSTED_NEAR = _BOOSTED_FAR - 1f;
-        private const float _BOOSTED_FAR = 200000f;
+        private const float _BOOSTED_FAR = 1000000f;
         private const float _BOOSTED_GAIN = 0.05f;
 
         private const float _DEFAULT_NEAR = 0f;
         private const float _DEFAULT_FAR = 25f;
         private const float _DEFAULT_GAIN = 15f;
         
-        internal void SetVoiceBoosted(float volume = 1f)
+        internal void SetVoiceBoosted(float volume = 1f) // TODO Does the player voice api have voice volume yet? https://feedback.vrchat.com/udon/p/setvoicegain-does-not-set-voice-gain
         {
-            JS_Debug.Log("Set voice boosted", this);
             if (!VRC.SDKBase.Utilities.IsValid(Owner)) return;
             
             Owner.SetVoiceDistanceNear(_BOOSTED_NEAR);
             Owner.SetVoiceDistanceFar(_BOOSTED_FAR);
-            Owner.SetVoiceGain(_BOOSTED_GAIN * volume);
+            Owner.SetVoiceGain(_BOOSTED_GAIN);
             
-            JS_Debug.LogSuccess($"Boosted {Owner.displayName}'s voice at volume {volume}.", this);
+            JS_Debug.LogSuccess($"Boosted {Owner.displayName}'s voice at volume {volume}. THE VOLUME DOES NOT WORK YET SO YOU SHOULD UPVOTE THIS CANNY: https://feedback.vrchat.com/udon/p/setvoicegain-does-not-set-voice-gain", this);
         }
         internal void SetVoiceDefault()
         {
-            JS_Debug.Log("Set voice default", this);
             if (!VRC.SDKBase.Utilities.IsValid(Owner)) return;
             
             Owner.SetVoiceDistanceNear(_DEFAULT_NEAR);
