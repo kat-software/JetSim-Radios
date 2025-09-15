@@ -16,12 +16,12 @@ namespace KatSoftware.JetSim.Radios.Runtime
 
 
         private void Start() => UpdateUI();
-        public override void OnRadioSettingsUpdated() => UpdateUI();
+        public override void OnLocalRadioSettingsUpdated() => UpdateUI();
         
 
         #region API
 
-        public void _ToggleRadio() => radioManager._ToggleRadioPowered();
+        public void _ToggleRadio() => radioManager.ToggleRadioPowered();
         public void _NextChannel() => radioManager.IncreaseChannel();
         public void _PreviousChannel() => radioManager.DecreaseChannel();
 

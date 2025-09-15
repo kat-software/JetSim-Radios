@@ -1,7 +1,7 @@
 ﻿
 using UnityEngine;
-using UdonSharp;
 
+using UdonSharp;
 using Cyan.PlayerObjectPool;
 
 using KatSoftware.JetSim.Common.Runtime;
@@ -10,60 +10,11 @@ namespace KatSoftware.JetSim.Radios.Runtime
 {
     [AddComponentMenu("")]
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
-    public class RadioPlayerObject : CyanPlayerObjectPoolObject
+    internal partial class RadioPlayerObject : CyanPlayerObjectPoolObject
     {
         [SerializeField, HideInInspector] private RadioManager radioManager;
-
-        private bool _localPlayerIsOwner;
         
-        private bool _transmitting;
-        
-        
-        #region INTERNAL API
-        
-        internal void SetTransmitting(bool state)
-        {
-            _transmitting = state;
-            
-            RequestSerialization();
-        }
-
-        internal const int MAX_CHANNEL = _CHANNEL_MASK;
-        internal int Channel { get; private set; }
-
-        internal void NextChannel(bool wrap = true)
-        {
-            var newChannel = Channel + 1;
-            
-            if (wrap)
-                if (newChannel > MAX_CHANNEL) newChannel = 0;
-            
-            SetChannel(newChannel);
-        }
-        internal void PreviousChannel(bool wrap = true)
-        {
-            var newChannel = Channel - 1;
-            
-            if (wrap) 
-                if (newChannel < 0) newChannel = MAX_CHANNEL;
-            
-            SetChannel(newChannel);
-        }
-        /// <summary>
-        /// Sets the channel for this player's radio and syncs it.
-        /// </summary>
-        /// <param name="newChannel">Clamped between 0 and <see cref="MAX_CHANNEL"/>.</param>
-        internal void SetChannel(int newChannel)
-        {
-            Channel = Mathf.Clamp(newChannel, 0, MAX_CHANNEL);
-            JS_Debug.Log("Channel set to: " + Channel, this);
-            
-            RequestSerialization();
-        }
-        
-        #endregion // INTERNAL API
-
-        #region SYNC
+        #region SYNCHRONIZATION
 
         [UdonSynced] private byte _syncedData;
         
@@ -73,19 +24,34 @@ namespace KatSoftware.JetSim.Radios.Runtime
         
         public override void OnPreSerialization()
         {
-            _syncedData = _transmitting ? _TRANSMIT_MASK : _ZERO;
-            _syncedData |= (byte)(Channel & _CHANNEL_MASK);
+            _syncedData = _radioEnabled ? _TRANSMIT_MASK : _ZERO;
+            _syncedData |= (byte)(_channel & _CHANNEL_MASK);
         }
 
         public override void OnDeserialization()
         {
-            _transmitting = (_syncedData & _TRANSMIT_MASK) > 0;
-            Channel = _syncedData & _CHANNEL_MASK;
+            _radioEnabled = (_syncedData & _TRANSMIT_MASK) > 0;
+            _channel = _syncedData & _CHANNEL_MASK;
 
-            OnSettingsUpdated();
+            OnLocalRadioSettingsUpdated();
         }
         
-        #endregion // SYNC
+        #endregion // SYNCHRONIZATION
+        
+        internal void OnLocalRadioSettingsUpdated()
+        {
+            if (ShouldBoostVoice())
+                SetVoiceBoosted(radioManager.Volume);
+            else
+                SetVoiceDefault();
+        }
+
+        private bool ShouldBoostVoice()
+        {
+            if (!_radioEnabled) return false;
+            if (!radioManager.RadioEnabled) return false;
+            return radioManager.Channel == _channel;
+        }
         
         #region VOICE STUFF
         
@@ -97,16 +63,16 @@ namespace KatSoftware.JetSim.Radios.Runtime
         private const float _DEFAULT_FAR = 25f;
         private const float _DEFAULT_GAIN = 15f;
         
-        internal void SetVoiceBoosted()
+        internal void SetVoiceBoosted(float volume = 1f)
         {
             JS_Debug.Log("Set voice boosted", this);
             if (!VRC.SDKBase.Utilities.IsValid(Owner)) return;
             
             Owner.SetVoiceDistanceNear(_BOOSTED_NEAR);
             Owner.SetVoiceDistanceFar(_BOOSTED_FAR);
-            Owner.SetVoiceGain(_BOOSTED_GAIN);
+            Owner.SetVoiceGain(_BOOSTED_GAIN * volume);
             
-            JS_Debug.LogSuccess("Set boosted success!", this);
+            JS_Debug.LogSuccess($"Boosted {Owner.displayName}'s voice at volume {volume}.", this);
         }
         internal void SetVoiceDefault()
         {
@@ -117,7 +83,7 @@ namespace KatSoftware.JetSim.Radios.Runtime
             Owner.SetVoiceDistanceFar(_DEFAULT_FAR);
             Owner.SetVoiceGain(_DEFAULT_GAIN);
             
-            JS_Debug.LogSuccess("Set default success!", this);
+            JS_Debug.LogSuccess($"Defaulted {Owner.displayName}'s voice.", this);
         }
         
         #endregion // VOICE STUFF
@@ -126,27 +92,15 @@ namespace KatSoftware.JetSim.Radios.Runtime
         
         public override void _OnOwnerSet()
         {
-            _localPlayerIsOwner = Owner.isLocal;
-            
-            JS_Debug.Log($"OnOwnerSet: {(_localPlayerIsOwner ? "Local" : "Remote")}.", this);
-            
-            if (!_localPlayerIsOwner) return;
-            
-            radioManager.RegisterLocalRadio(this);
-            
-            _transmitting = false;
-            
-            RequestSerialization();
+            JS_Debug.Log($"OnOwnerSet: {(Owner.isLocal ? "Local" : "Remote")}.", this);
+
+            if (Owner.isLocal)
+                radioManager.RegisterLocalRadio(this);
+            else
+                radioManager.RegisterRemoteRadio(this);
         }
 
-        public override void _OnCleanup()
-        {
-            _transmitting = false;
-            
-            RequestSerialization();
-            
-            radioManager._Unsubscribe(this);
-        }
+        public override void _OnCleanup() => radioManager.UnregisterRemoteRadio(this);
 
         #endregion // CPOP
     }
