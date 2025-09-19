@@ -35,33 +35,33 @@ namespace KatSoftware.JetSim.Radios.Runtime
         [PublicAPI] public const int MAX_CHANNEL = RadioPlayerObject.MAX_CHANNEL;
 
         [PublicAPI]
-        public void IncreaseChannel()
+        public void IncreaseChannel(bool wrap = true)
         {
             if (!_localPlayerRadioObject) return;
 
-            Channel = _localPlayerRadioObject.NextChannel();
+            Channel = _localPlayerRadioObject.NextChannel(wrap);
 
             NotifyLocalRadioSettingsUpdated();
         }
 
         [PublicAPI]
-        public void DecreaseChannel()
+        public void DecreaseChannel(bool wrap = true)
         {
             if (!_localPlayerRadioObject) return;
 
-            Channel = _localPlayerRadioObject.PreviousChannel();
+            Channel = _localPlayerRadioObject.PreviousChannel(wrap);
 
             NotifyLocalRadioSettingsUpdated();
         }
 
         [PublicAPI]
-        public void SetChannel(int newChannel)
+        public void SetChannel(int newChannel, bool wrap = true)
         {
             Channel = newChannel;
 
             if (!_localPlayerRadioObject) return;
 
-            Channel = _localPlayerRadioObject.SetChannel(newChannel);
+            Channel = _localPlayerRadioObject.SetChannel(newChannel, wrap);
 
             NotifyLocalRadioSettingsUpdated();
         }
