@@ -38,7 +38,9 @@ namespace KatSoftware.JetSim.Radios.Runtime
             
             _localPlayer = Networking.LocalPlayer;
             _zone = zoneCollider.bounds;
-            _zone.Expand(1f);
+            // Bounds.Expand and other methods that modify the source struct don't work in Udon.
+            // https://feedback.vrchat.com/udon/p/boundsexpand-and-other-methods-that-modify-the-struct-it-is-called-on-do-not-wor
+            _zone = new Bounds(_zone.center, _zone.size + Vector3.one * 10f);
         }
 
 
