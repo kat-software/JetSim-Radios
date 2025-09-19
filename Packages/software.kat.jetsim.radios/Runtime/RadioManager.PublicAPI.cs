@@ -6,6 +6,9 @@ namespace KatSoftware.JetSim.Radios.Runtime
 {
     public partial class RadioManager
     {
+        /// <summary>
+        /// If the Radio system is both powered and enabled. This is the requirement for the player being able to transmit and receive.
+        /// </summary>
         [PublicAPI] public bool RadioEnabled => RadioSystemEnabled && RadioPowered;
 
         #region VOLUME
@@ -67,11 +70,16 @@ namespace KatSoftware.JetSim.Radios.Runtime
 
         #region POWERED
 
+        /// <summary>
+        /// For example if the player is in a RadioZone, a RadioActivator is enabled, or whatever you as the creator decide.
+        /// </summary>
         [PublicAPI] public bool RadioPowered { get; private set; }
 
+        /// <inheritdoc cref="RadioPowered" />
         [PublicAPI]
         public void ToggleRadioPowered() => SetRadioPowered(!RadioPowered);
 
+        /// <inheritdoc cref="RadioPowered" />
         [PublicAPI]
         public void SetRadioPowered(bool state)
         {
@@ -88,11 +96,16 @@ namespace KatSoftware.JetSim.Radios.Runtime
 
         #region SYSTEM ENABLED
 
+        /// <summary>
+        /// The player's preference for if they want to use the radio system.
+        /// </summary>
         [PublicAPI] public bool RadioSystemEnabled { get; private set; }
 
+        /// <inheritdoc cref="RadioSystemEnabled" />
         [PublicAPI]
         public void ToggleRadioSystemEnabled() => SetRadioSystemEnabled(!RadioSystemEnabled);
         
+        /// <inheritdoc cref="RadioSystemEnabled" />
         [PublicAPI]
         public void SetRadioSystemEnabled(bool state)
         {
