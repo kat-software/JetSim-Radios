@@ -14,6 +14,7 @@
 
 * Cyan Player Object Pool [VCC](https://cyanlaser.github.io/CyanPlayerObjectPool/), [GitHub](https://github.com/CyanLaser/CyanPlayerObjectPool)
 * VRRefAssist [VCC](https://livedimensions.github.io/VRRefAssist/), [GitHub](https://github.com/LiveDimensions/VRRefAssist).
+* JetSim - Common [VCC](https://kitkat4191.github.io/JetSim-VCC-Listing/), [GitHub](https://github.com/kat-software/JetSim-Common).
 
 ___
 
@@ -29,7 +30,8 @@ ___
 * [Cyan Player Object Pool VCC listing](https://cyanlaser.github.io/CyanPlayerObjectPool/)
 * [JetSim VCC listing](https://kitkat4191.github.io/JetSim-VCC-Listing/)
 * Manage Project > JetSim - Radios > Add package (+)
-* The VCC *should* install the dependencies for you as long as the listings were added
+
+The VCC *should* install the dependencies for you as long as all the listings were added. If it doesn't then go to `Settings > Packages` in the Creator Companion and double check that the packages were installed, and are enabled in the **Community Repositories** list.
 
 ### Option 2: UPM
 
@@ -50,19 +52,12 @@ ___
 
 You can find them at `Packages > JetSim - Radios > Prefabs`
 
-### Radio System
-
-There has to be one instance of this prefab in your scene. If it's not present the system won't work.
-
-### Radio Activator
-
-When this GameObject is enabled or disabled it will enable or disable the radio.
-
-### Radio Zone
-
-Enables the radio while the player is inside the trigger collider. You can use any convex trigger collider.
-
----
+| Name            | Summary                                                                                                  |
+|-----------------|----------------------------------------------------------------------------------------------------------|
+| Radio System    | There has to be one instance of this prefab in your scene. If it's not present the radios won't work.    |
+| Radio Activator | When this GameObject is enabled or disabled it will enable or disable the radio.                         |
+| Radio Zone      | Enables the radio while the player is inside the trigger collider.                                       |
+| Radio Menu      | A bare-bones example UI that allows players to change the radio channel, or disable the system entirely. |
 
 ## Scripting API
 
