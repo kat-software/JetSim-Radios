@@ -10,6 +10,14 @@
 
 ![JetSim](https://raw.githubusercontent.com/KitKat4191/JetSim-VCC-Listing/main/Website/banner.png)
 
+## Introduction
+
+This radio system for VRChat worlds lets players communicate with each other while traveling at high speeds around the world.
+This is achieved by adjusting the near and far voice distances to keep a constant voice volume for players that are on the same channel as you.
+The system has 128 radio channels the players can pick from in the settings menu. Legacy 2019 projects are supported!
+
+---
+
 ## Dependencies
 
 * Cyan Player Object Pool [VCC](https://cyanlaser.github.io/CyanPlayerObjectPool/), [GitHub](https://github.com/CyanLaser/CyanPlayerObjectPool)
