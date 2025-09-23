@@ -1,6 +1,6 @@
 {
   "name": "software.kat.jetsim.radios",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "type": "tool",
   "displayName": "JetSim - Radios",
   "description": "Drop-in radio system for VRChat worlds.",
