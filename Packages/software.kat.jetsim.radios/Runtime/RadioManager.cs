@@ -7,6 +7,10 @@ using VRRefAssist;
 using KatSoftware.JetSim.Common.Runtime;
 using KatSoftware.JetSim.Common.Runtime.Extensions;
 
+#if UNITY_EDITOR && !COMPILER_UDONSHARP
+using System.Linq;
+#endif
+
 namespace KatSoftware.JetSim.Radios.Runtime
 {
     [Singleton]
@@ -15,6 +19,14 @@ namespace KatSoftware.JetSim.Radios.Runtime
     public partial class RadioManager : UdonSharpBehaviour
     {
         [SerializeField, HideInInspector, FindObjectsOfType] private RadioEventReceiver[] eventReceivers;
+
+        #if UNITY_EDITOR && !COMPILER_UDONSHARP
+        [RunOnBuild(1001)] // After field automation.
+        private void RunOnBuild()
+        {
+            eventReceivers = eventReceivers.Where(x => x != null).ToArray();
+        }
+        #endif
 
         private RadioPlayerObject _localPlayerRadioObject;
         
